@@ -7,18 +7,13 @@ This guide covers everything needed to **install, configure, and use Xfce on WSL
 
 ---
 
-## **📌 Part 1: First-Time Setup (Installation & Uninstallation)**  
-This section explains how to set up Xfce for the first time.
-
-### **🔹 Step 1: Update Your System**
+## **🟢 Part 1: First-Time Setup**  
+### **1️⃣ Install Required Packages**  
 Before installing anything, update your WSL Ubuntu packages:  
 ```bash
 sudo apt update && sudo apt upgrade -y
 ```
 
----
-
-### **🔹 Step 2: Install Xfce Desktop**
 Xfce is a **lightweight** desktop environment suitable for WSL2. Install it using:  
 ```bash
 sudo apt install xfce4 xfce4-goodies -y
@@ -28,126 +23,117 @@ sudo apt install xfce4 xfce4-goodies -y
 
 ---
 
-### **🔹 Step 3: Install Xrdp (Remote Desktop Server)**
+### **2️⃣ Install & Configure XRDP (Remote Desktop Server)**  
 To access Xfce via Windows **Remote Desktop (RDP)**, install **Xrdp**:  
 ```bash
 sudo apt install xrdp -y
+```
+Enable the XRDP service to start automatically:  
+```bash
 sudo systemctl enable xrdp
-sudo systemctl start xrdp
 ```
-- `enable xrdp` → Starts Xrdp automatically at boot.  
-- `start xrdp` → Runs Xrdp immediately.  
-
----
-
-### **🔹 Step 4: Configure Xfce for Xrdp**
-Tell Xrdp to start the **Xfce session** instead of a different desktop:  
-```bash
-echo "xfce4-session" > ~/.xsession
-sudo service xrdp restart
-```
-Now, Xfce will launch when you connect via RDP.
-
----
-
-### **🔹 Step 5: Connect to Xfce from Windows**
-1. Open **Remote Desktop Connection** (`mstsc.exe`).  
-2. Enter:  
-   ```
-   localhost:3389
-   ```
-3. Click **Connect** and log in with your **WSL username & password**.  
-4. 🎉 You should see your **Xfce desktop** inside Windows!
-
----
-
-### **🛑 Uninstalling Xfce and Xrdp**
-If you want to **remove everything**:  
-```bash
-sudo apt remove --purge xfce4 xfce4-goodies xrdp -y
-sudo apt autoremove -y
-```
-This will **completely remove Xfce and Xrdp** from WSL.
-
----
-
-## **📌 Part 2: Daily Usage & Managing Xfce in WSL**
-If you have already installed Xfce and want to **log in again**, follow these steps.
-
----
-
-### **🔹 Start Xrdp (If Not Running)**
-If you restart your PC or shut down WSL, Xrdp might not be running. Start it manually:  
+Start the XRDP service:  
 ```bash
 sudo systemctl start xrdp
 ```
 
----
-
-### **🔹 Stop Xrdp (If Not Needed)**
-To stop the Xrdp service:  
+### **3️⃣ Configure XRDP to Use XFCE4**  
+Edit the `startwm.sh` file:  
 ```bash
-sudo systemctl stop xrdp
+sudo nano /etc/xrdp/startwm.sh
+```
+Delete everything inside and **replace it** with the following:  
+```bash
+#!/bin/sh
+unset DBUS_SESSION_BUS_ADDRESS
+unset XDG_RUNTIME_DIR
+
+. /etc/X11/Xsession
+startxfce4
+```
+Save and exit:  
+- Press `CTRL + X`  
+- Press `Y` (Yes)  
+- Press `Enter`  
+
+Make sure the file is executable:  
+```bash
+sudo chmod +x /etc/xrdp/startwm.sh
 ```
 
----
-
-### **🔹 Restart Xrdp (For Troubleshooting)**
-If Xrdp is acting weird, restart it:  
+### **4️⃣ Restart XRDP**  
 ```bash
 sudo systemctl restart xrdp
 ```
 
----
-
-### **🔹 Check If Xrdp is Running**
-To verify that Xrdp is active, run:  
+### **5️⃣ Allow XRDP in Firewall (If Needed)**
+If using a firewall, allow the XRDP port:  
 ```bash
-sudo systemctl status xrdp
+sudo ufw allow 3389/tcp
 ```
-If it says **"active (running)"**, you’re good to go! ✅  
 
 ---
 
-### **🔹 Log in to Xfce Desktop Again**
-If you’ve already set up everything:
-1. Open **Remote Desktop Connection** (`mstsc.exe`).
-2. Type **`localhost:3389`** and connect.
-3. Enter your **WSL username & password**.
-4. 🎉 Welcome back to your **Xfce desktop**!
+## **🛑 Uninstall XRDP & XFCE4 (If Needed)**  
+If you want to remove everything:  
+```bash
+sudo apt remove --purge xrdp xfce4 xfce4-goodies -y
+sudo apt autoremove -y
+sudo rm -rf /etc/xrdp
+```
 
 ---
 
-## **📌 Additional Tips**
-### **🔹 Start Xrdp Automatically on WSL Launch**
-If you want **Xrdp to start every time you open WSL**, add this line to your **~/.bashrc** file:  
+## **🟢 Part 2: Using XRDP After Setup**  
+### **1️⃣ Starting XRDP Service (If Not Running)**  
 ```bash
 sudo systemctl start xrdp
 ```
-Now, every time you open WSL, Xrdp will start automatically.
 
----
+### **2️⃣ Connecting via Remote Desktop**  
+1. Open **Remote Desktop Connection (`mstsc.exe`)** on Windows.  
+2. Enter `localhost:3389` as the address.  
+3. Login with your **WSL username and password**.  
 
-### **🔹 Install a Web Browser**
-By default, Xfce doesn’t have a browser. Install **Firefox** or **Chromium**:  
+### **3️⃣ Properly Disconnecting from XRDP**
+- **To log out completely:**  
+  Go to **Applications Menu → Log Out**  
+- **To keep the session running:**  
+  Simply close the RDP window (`X`) and select **"OK"** to disconnect without logging out.  
+
+### **4️⃣ Stopping XRDP Manually**
+If needed, stop XRDP manually:  
 ```bash
-sudo apt install firefox -y
-sudo apt install chromium-browser -y
+sudo systemctl stop xrdp
+```
+
+### **5️⃣ Restarting XRDP in Case of Issues**  
+```bash
+sudo systemctl restart xrdp
+```
+
+### **6️⃣ Debugging Connection Issues**  
+If you get disconnected, check logs:  
+```bash
+cat ~/.xsession-errors
+sudo journalctl -u xrdp --no-pager | tail -50
 ```
 
 ---
 
-### **🔹 Install a File Manager (If Needed)**
-Xfce comes with `Thunar`, but if you prefer **GNOME’s Nautilus**:  
-```bash
-sudo apt install nautilus -y
-```
+## **🎯 Troubleshooting Tips**
+- **If Remote Desktop disconnects immediately:**  
+  - Make sure `startwm.sh` is correctly configured (see Step 3).  
+  - Restart XRDP:  
+    ```bash
+    sudo systemctl restart xrdp
+    ```  
+- **If you get a black screen after login:**  
+  - Try running:  
+    ```bash
+    echo "xfce4-session" > ~/.xsession
+    ```
 
 ---
 
-## **📌 Conclusion**
-- **First-time setup** → Install **Xfce + Xrdp**, configure, and connect via **RDP**.  
-- **Daily use** → Start **Xrdp**, log in via **RDP**, and enjoy Linux on Windows!  
-- **Uninstall anytime** → Use `apt remove --purge xfce4 xfce4-goodies xrdp`.  
-
-This guide ensures you can **easily use Xfce in WSL**. Let me know if you need any tweaks! 🚀🔥
+This documentation covers everything from **installation to troubleshooting**. 🚀 Let me know if you'd like any modifications! 😊
