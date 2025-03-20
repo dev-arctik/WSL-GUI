@@ -135,5 +135,3 @@ sudo journalctl -u xrdp --no-pager | tail -50
     ```
 
 ---
-
-This documentation covers everything from **installation to troubleshooting**. 🚀 Let me know if you'd like any modifications! 😊
