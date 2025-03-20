@@ -2,7 +2,7 @@
 # **📖 Xfce Desktop on WSL2 – Complete Documentation**  
 This guide covers everything needed to **install, configure, and use Xfce on WSL2** with **Xrdp** for remote desktop access.
 
-![Xfce Desktop]()
+![Xfce Desktop](https://raw.githubusercontent.com/dev-arctik/WSL-GUI/refs/heads/main/gui_screenshot.png)
 
 
 ---
